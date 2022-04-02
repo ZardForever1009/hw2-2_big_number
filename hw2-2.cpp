@@ -18,11 +18,19 @@ public:
 // print node list starting from tail
 void print_list_from_head(Node* head){
     if(head==nullptr)cout<<"> Empty list(print list)";
-    while(head->data=="0"&&head->next!=nullptr)head=head->next;  // find the first non-zero digit
-    while(head!=nullptr){
-        cout<<head->data;
+    if(head->data=="-"){
         head=head->next;
+        while(head->data=="0"&&head->next!=nullptr)head=head->next;  // find the first non-zero digit
+        if(head->data!="0")cout<<"-";
+        
     }
+    else {
+        while(head->data=="0"&&head->next!=nullptr)head=head->next;  // find the first non-zero digit        
+    }
+    while(head!=nullptr){
+            cout<<head->data;
+            head=head->next;
+        }
     cout<<endl;
     return;
 }
@@ -78,12 +86,12 @@ void build_list(Node*& head, string num){
 }
 
 // check if the number is negative or positive
-bool negative_or_not(Node* head){
+bool positive_or_not(Node* head){
     while(head!=nullptr){
-        if(head->data=="-")return true; // it's negative
+        if(head->data=="-")return false; // it's negative
         head=head->next;
     }
-    return false;
+    return true;
 }
 
 // get absolute value digit counts
@@ -97,9 +105,9 @@ int get_digit(Node* head){
 }
 
 // check if ABSOLUTE value of num1 is bigger than absolute value num2 
-int num1_bigger_than_num2(Node* num1, Node* num2){
-    if(get_digit(num1)>get_digit(num2))return 1;
-    else if(get_digit(num2)>get_digit(num1))return 0;
+bool num1_bigger_or_equal_than_num2(Node* num1, Node* num2){
+    if(get_digit(num1)>get_digit(num2))return true;
+    else if(get_digit(num2)>get_digit(num1))return false;
     else{
         // digit of num1 == digit of num2
         while(num1->next!=nullptr){
@@ -107,14 +115,14 @@ int num1_bigger_than_num2(Node* num1, Node* num2){
             num2=num2->next;
         }              
         while(num1!=nullptr){
-            if(stoi(num1->data)>stoi(num2->data))return 1;
-            else if(stoi(num2->data)>stoi(num1->data))return 0;
+            if(stoi(num1->data)>stoi(num2->data))return true;
+            else if(stoi(num2->data)>stoi(num1->data))return false;
             else{
                 num1=num1->prev;
                 num2=num2->prev;
             }
         }
-        return -1; // compare all digit, but no result --> both number equals to each other
+        return true; // compare all digit, but no result --> both number equals to each other
     }
 }
 
@@ -172,23 +180,79 @@ void big_number_calculator(){
     cin>>num1; cin>>sign; cin>>num2;
     build_list(head1, num1);
     build_list(head2, num2);
-    bool num1_negative=negative_or_not(head1);
-    bool num2_negative=negative_or_not(head2);
+    bool num1_positive=positive_or_not(head1);
+    bool num2_positive=positive_or_not(head2);
     remove_sign(head1); 
     remove_sign(head2);
     // absolute value comparison
-    int num1_bigger=num1_bigger_than_num2(head1, head2); // 1: true 0:false -1:equal
-    // start calculation    
-    substract(head1, head2, result);
+    bool num1_bigger_or_equal=num1_bigger_or_equal_than_num2(head1, head2); // true: >=  /  false: <
+    // start calculation
+    if(num1_bigger_or_equal){ // num1 > num2 && num1 == num2
+        if(num1_positive){
+            if(sign=="+"){
+                if(num2_positive)add(head1, head2, result); // +++
+                else substract(head1, head2, result);  // ++-
+            }
+            else{
+                if(num2_positive)substract(head1, head2, result); // +-+
+                else add(head1, head2, result);// +--
+            }
+        }
+        else{
+            if(sign=="+"){
+                if(num2_positive)substract(head1, head2, result); // -++
+                else add(head1, head2, result);  // -+-
+            }
+            else{
+                if(num2_positive)add(head1, head2, result); // --+
+                else substract(head1, head2, result);// ---
+            }
+            InsertNode(result, "-"); // result is negative
+        }
+    }
+    else{ // num1 < num2
+        if(num1_positive){
+            if(sign=="+"){ 
+                if(num2_positive)add(head1, head2, result);  // +++
+                else{               // ++-
+                    substract(head2, head1, result);
+                    InsertNode(result, "-");
+                } 
+            }
+            else{
+                if(num2_positive){  // +-+
+                    substract(head2, head1, result);
+                    InsertNode(result, "-");
+                }
+                else add(head1, head2, result); // +--
+            }
+        }
+        else{
+            if(sign=="+"){
+                if(num2_positive)substract(head2, head1, result);   //  -++
+                else{           // -+-
+                    add(head1, head2, result);
+                    InsertNode(result, "-");
+                } 
+            }
+            else{
+                if(num2_positive){  // --+
+                    add(head1, head2, result);
+                    InsertNode(result, "-");
+                }
+                else substract(head2, head1, result);// ---
+            }
+        }
+    }
+    // print out result
     print_list_from_head(result);
-    
     return;
 }
 
 
 
 int main(){
-    
+      
     big_number_calculator();
     
     system("pause");
