@@ -63,15 +63,15 @@ void remove_sign(Node*& head){
     if(head==nullptr)cout<<"> Empty list(rm sign)\n";
     while(head!=nullptr){
         if(head->data=="-"){            
-            (head->prev)->next=nullptr;
-            head->prev=nullptr;
-            head->next=nullptr;
+            head=head->prev;
+            head->next=nullptr;            
+            delete head->next;
             head=restore_head;            
             return;
         }
         head=head->next;
     }
-    head=restore_head;   
+    head=restore_head;
     return;
 }
 
